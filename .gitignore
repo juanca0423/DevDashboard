@@ -1,0 +1,12 @@
+# PowerShell
+*.log
+*.tmp
+.DS_Store
+
+# Datos sensibles (si usas archivos .env para tus proyectos de Go)
+.env
+.env.*
+
+# Carpetas de VS Code o Neovim
+.vscode/
+.nvim/

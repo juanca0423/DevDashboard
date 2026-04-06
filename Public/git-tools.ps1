@@ -1,0 +1,125 @@
+# git-tool.ps1
+# =========================================================
+# GIT TOOLS CONSOLIDADO (Versión Estable)
+# =========================================================
+
+# --- PREVIEW PARA EL DASHBOARD ---
+function Show-GitPreview {
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
+    $isRepo = git rev-parse --is-inside-work-tree 2>$null
+    if (-not $isRepo) {
+        Write-Host "`n  No estás en un repositorio Git" -ForegroundColor DarkGray
+        return
+    }
+
+    $branch = git branch --show-current
+    Write-Host "`n── GIT STATUS ────────────────" -ForegroundColor DarkGray
+    Write-Host " Rama: $branch" -ForegroundColor Magenta
+    git status --short 2>$null | Select-Object -First 5 | ForEach-Object { Write-Host "  $_" }
+}
+
+# --- MENÚ PRINCIPAL DE GIT ---
+function Show-GitMenu {
+    if (-not (git rev-parse --is-inside-work-tree 2>$null)) {
+        Write-Host "`n [!] No estás en un repositorio Git." -ForegroundColor Yellow
+        Start-Sleep -Seconds 1
+        return 
+    }
+
+    while ($true) {
+        $items = @(
+            @{Label = "🔍 Buscadores y Logs";     Action = { Show-GitSearchMenu }},
+            @{Label = "📦 Flujo (Commit/Stash)";  Action = { Show-GitWorkflowMenu }},
+            @{Label = "🛠️ Avanzado";               Action = { Show-GitAdvancedMenu }},
+            @{Label = "🌿 Status";                Action = { git status | Out-Host }},
+            @{Label = "🚀 Pull / Push";           Action = { git pull; git push | Out-Host }},
+            @{Label = "« Volver";                 Action = { return "BACK" }}
+        )
+
+        $selected = Invoke-Menu "HERRAMIENTAS DE GIT" $items
+        if ($null -eq $selected -or $selected.Label -eq "« Volver") { break }
+
+        Clear-Host
+        $result = & $selected.Action
+        if ($result -eq "BACK") { continue }
+
+        # Pausa de seguridad para comandos que no son submenús
+        if ($selected.Label -match "Status|Pull") {
+            Write-Host "`n[Presiona una tecla para continuar]" -ForegroundColor DarkGray
+            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        }
+    }
+}
+
+# --- 2. FLUJO DE TRABAJO (Commit/Stash) ---
+function Show-GitWorkflowMenu {
+    while ($true) {
+        Clear-Host
+        Show-DashboardHeader
+        $items = @(
+            # --- ESTADO Y CAMBIOS ---
+            @{Label = "🔍 Git Status (Detallado)"; Action = { git status | Out-Host }},
+            @{Label = "📝 Ver Cambios Actuales"; Action = { git diff }},
+            @{Label = "📦 Ver Cambios en Staging (Add)"; Action = { git diff --cached }}            # --- FLUJO DE TRABAJO ---
+            @{Label = "➕ Add / Stage (fzf)";       Action = { git-add-fzf }},
+            @{Label = "💾 Commit (Interactivo)";    Action = { 
+                $msg = Read-Host "Mensaje del commit"
+                if ($msg) { git add .; git commit -m $msg }
+            }},
+            @{Label = " Cambiar Rama (Checkout)"; Action = { git-checkout-fzf }},
+            @{Label = " Historial (Log FZF)";     Action = { git-log-fzf }},
+
+            # --- GESTIÓN DE STASH ---
+            @{Label = "📦 Stash: Guardar Actual";   Action = { 
+                $sMsg = Read-Host "Nombre del Stash (opcional)"
+                git stash save $sMsg 
+            }},
+            @{Label = "📥 Stash: Recuperar (Pop)";  Action = { git-stash-pop-fzf }},
+            @{Label = "󰆴 Stash: Borrar (Drop)";     Action = { git-stash-drop-fzf }},
+
+            # --- PELIGRO / RESET ---
+            @{Label = "🔄 Reset Files (fzf)";       Action = { git-reset-fzf }},
+            @{Label = "« Volver";                   Action = { return "BACK" }}
+        )
+
+        $selected = Invoke-Menu "GIT > FLUJO INTEGRADO" $items
+        if ($null -eq $selected -or $selected.Label -eq "« Volver") { break }
+
+        Clear-Host
+        # Ejecutamos la acción seleccionada
+        & $selected.Action
+        
+        if ($selected.Label -match "Status|Diff") {
+            Write-Host "`n[Presiona cualquier tecla para volver al menú]" -ForegroundColor Cyan
+            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        } else {
+            Write-Host "`n[Operación finalizada]" -ForegroundColor DarkGreen
+            Start-Sleep -Milliseconds 800
+        }
+    }
+}
+
+# --- 3. AVANZADO ---
+function Show-GitAdvancedMenu {
+    while ($true) {
+        Clear-Host
+        Show-DashboardHeader
+        $items = @(
+            @{Label = "🔨 Rebase Interactivo (fzf)"; Action = { git-rebase-fzf }},
+            @{Label = "🍒 Cherry-pick (fzf)";       Action = { git-cherry-pick-fzf }},
+            @{Label = "🔍 Bisect: Iniciar búsqueda"; Action = { git-bisect-start-fzf }},
+            @{Label = "🧹 Bisect: Reset / Terminar"; Action = { git bisect reset; Write-Host "Bisect finalizado." -ForegroundColor Green; pause }},
+            @{Label = "📋 Git Blame (Ver autoría)";  Action = { git-blame-preview }},
+            @{Label = "« Volver";                    Action = { return "BACK" }}
+        )
+
+        $selected = Invoke-Menu "GIT > AVANZADO" $items
+        if ($null -eq $selected -or $selected.Label -eq "« Volver") { break }
+
+        Clear-Host
+        & $selected.Action
+        
+        # Limpia el buffer de entrada para evitar saltos accidentales
+        while ($Host.UI.RawUI.KeyAvailable) { $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") }
+    }
+}
