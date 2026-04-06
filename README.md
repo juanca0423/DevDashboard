@@ -1,5 +1,7 @@
-# 🚀 DevDashboard v1.3.2
+# 🚀 DevDashboard v1.0.1
 > Entorno CLI interactivo para PowerShell 7+ personalizado para @JuanCa.
+
+![DevDashboard Screenshot](img/dashboard.png)
 
 ## ✨ Características
 - **Dashboard Interactivo:** Acceso rápido a proyectos, Docker y Git.
