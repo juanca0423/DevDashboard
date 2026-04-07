@@ -1,164 +1,173 @@
-function go-symbols-fzf {
-    # Excluimos vendor para que no se tarde mil años
-    $results = Get-ChildItem -Recurse -Filter *.go -Exclude "vendor","node_modules" -ErrorAction SilentlyContinue |
-        Select-String '^(func|type)\s' |
-        ForEach-Object { "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())" }
+function Get-GoSymbols
+{
+  # Excluimos vendor para que no se tarde mil años
+  $results = Get-ChildItem -Recurse -Filter *.go -Exclude "vendor","node_modules" -ErrorAction SilentlyContinue |
+    Select-String '^(func|type)\s' |
+    ForEach-Object { "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())" }
 
-    if (-not $results) { 
-        Write-Host "No se encontraron símbolos de Go." -ForegroundColor Yellow
-        return 
-    }
+  if (-not $results)
+  { 
+    Write-Host "No se encontraron símbolos de Go." -ForegroundColor Yellow
+    return 
+  }
 
-    $selected = $results | fzf --delimiter "`t" --nth 3.. `
-        --prompt="Go symbol > " `
-        --preview 'bat --style=numbers --color=always --highlight-line {2} {1}' `
-        --reverse --height 40%
+  $selected = $results | fzf --delimiter "`t" --nth 3.. `
+    --prompt="Go symbol > " `
+    --preview 'bat --style=numbers --color=always --highlight-line {2} {1}' `
+    --reverse --height 40%
 
-    if ($selected) {
-        $parts = $selected -split "`t"
-        # Invocamos Neovim en la línea exacta
-        Invoke-CleanNvim "+$($parts[1])" "$($parts[0])"
-    }
+  if ($selected)
+  {
+    $parts = $selected -split "`t"
+    # Invocamos Neovim en la línea exacta
+    Invoke-CleanNvim "+$($parts[1])" "$($parts[0])"
+  }
 }
 
-function py-symbols-fzf {
-    $results = Get-ChildItem -Recurse -Filter *.py -ErrorAction SilentlyContinue |
-        Select-String '^(def|class)\s+\w+' |
-        ForEach-Object { "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())" }
+function Get-PySymbols
+{
+  $results = Get-ChildItem -Recurse -Filter *.py -ErrorAction SilentlyContinue |
+    Select-String '^(def|class)\s+\w+' |
+    ForEach-Object { "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())" }
 
-    if (-not $results) { return }
+  if (-not $results)
+  { return 
+  }
 
-    $selected = $results | fzf --delimiter "`t" --nth 3.. --prompt="Python symbol > " --reverse
+  $selected = $results | fzf --delimiter "`t" --nth 3.. --prompt="Python symbol > " --reverse
 
-    if ($selected) {
-        $parts = $selected -split "`t"
-        Invoke-CleanNvim @("+$($parts[1])", "$($parts[0])")
-    }
+  if ($selected)
+  {
+    $parts = $selected -split "`t"
+    Invoke-CleanNvim @("+$($parts[1])", "$($parts[0])")
+  }
 }
 
-function js-symbols-fzf {
-    $results = Get-ChildItem -Recurse -Include *.js,*.mjs,*.cjs |
-        Select-String '^(function|class|const|let|var)\s+\w+' |
-        ForEach-Object {
-            "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())"
-        }
-
-    if (-not $results) {return}
-
-    $selected = $results | fzf --delimiter "`t" --nth 3.. --prompt="JS symbol > " --reverse
-
-    if ($selected) {  
-      $parts = $selected -split "`t"
-      Invoke-CleanNvim @("+$($parts[1])", "$($parts[0])")
+function Get-JsSymbols
+{
+  $results = Get-ChildItem -Recurse -Include *.js,*.mjs,*.cjs |
+    Select-String '^(function|class|const|let|var)\s+\w+' |
+    ForEach-Object {
+      "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())"
     }
+
+  if (-not $results)
+  {return
+  }
+
+  $selected = $results | fzf --delimiter "`t" --nth 3.. --prompt="JS symbol > " --reverse
+
+  if ($selected)
+  {  
+    $parts = $selected -split "`t"
+    Invoke-CleanNvim @("+$($parts[1])", "$($parts[0])")
+  }
 }
 
-function css-symbols-fzf {
-    $results = Get-ChildItem -Recurse -Include *.css,*.scss |
-        Select-String '^[.#$@]\w+' |
-        ForEach-Object {
-            "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())"
-        }
-
-    if (-not $results) { return }
-
-    $selected = $results | fzf --delimiter "`t" --nth 3.. --prompt="CSS symbol > " --reverse
-
-    if ($selected) {
-      $parts = $selected -split "`t"
-      Invoke-CleanNvim @("+$($parts[1])", "$($parts[0])")
+function Get-CssSymbols
+{
+  $results = Get-ChildItem -Recurse -Include *.css,*.scss |
+    Select-String '^[.#$@]\w+' |
+    ForEach-Object {
+      "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())"
     }
+
+  if (-not $results)
+  { return 
+  }
+
+  $selected = $results | fzf --delimiter "`t" --nth 3.. --prompt="CSS symbol > " --reverse
+
+  if ($selected)
+  {
+    $parts = $selected -split "`t"
+    Invoke-CleanNvim @("+$($parts[1])", "$($parts[0])")
+  }
 }
 
-function hbs-symbols-fzf {
-    $results = Get-ChildItem -Recurse -Filter *.hbs |
-        Select-String '{{[#/>]?\s*\w+' |
-        ForEach-Object {
-            "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())"
-        }
-
-    if (-not $results) {return}
-
-    $selected = $results | fzf --delimiter "`t" --nth 3.. --prompt="HBS symbol > " --reverse
-
-    if ($selected) {
-      $parts = $selected -split "`t"
-      Invoke-CleanNvim @("+$($parts[1])", "$($parts[0])")
+function Get-HbsSymbols
+{
+  $results = Get-ChildItem -Recurse -Filter *.hbs |
+    Select-String '{{[#/>]?\s*\w+' |
+    ForEach-Object {
+      "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())"
     }
+
+  if (-not $results)
+  {return
+  }
+
+  $selected = $results | fzf --delimiter "`t" --nth 3.. --prompt="HBS symbol > " --reverse
+
+  if ($selected)
+  {
+    $parts = $selected -split "`t"
+    Invoke-CleanNvim @("+$($parts[1])", "$($parts[0])")
+  }
 }
 
-function symbols-fzf {
-    if (-not (Test-Path "tags")) {
-        Write-Host "⏳ Generando tags..." -ForegroundColor Cyan
-        ctags -R --exclude="node_modules" --exclude="vendor" .
-    }
+# Añade un parámetro para forzar la actualización
 
-    if (-not (Test-Path "tags")) { return }
+function Get-FzfSymbol
+{
+  param([switch]$Update)
 
-    $lines = Get-Content tags | Where-Object { $_ -notmatch '^!' }
-    if (-not $lines) { return }
+  # SEGURO DE VIDA: Si la ruta es muy corta (como C:\ o C:\Users), abortamos
+  if ($PWD.Path.Length -le 10)
+  {
+    Write-Host "🛑 ERROR: Estás en una carpeta raíz o muy sensible. No generaré tags aquí." -ForegroundColor Red
+    return
+  }
 
-    $selected = $lines | fzf --delimiter "`t" `
-        --prompt="Símbolo > " `
-        --nth=1,4 `
-        --preview 'bat --style=numbers --color=always --highlight-line {3} {2}' `
-        --reverse
+  # Tu lógica normal...
+  if ($Update -or -not (Test-Path "tags"))
+  {
+    Write-Host "⏳ Generando tags en $($PWD.Path)..." -ForegroundColor Cyan
+    ctags -R --exclude="node_modules" --exclude="vendor" --exclude=".git" .
+  }
 
-    if ($selected) {
-        $parts = $selected -split "`t"
-        $file  = $parts[1].Trim()
+  if (-not (Test-Path "tags"))
+  {
+    Write-Host "❌ No se pudo encontrar ni generar el archivo 'tags'." -ForegroundColor Red
+    return 
+  }
+
+  # 2. Filtrar encabezados de ctags
+  $lines = Get-Content tags | Where-Object { $_ -notmatch '^!' }
+  if (-not $lines)
+  {
+    Write-Host "⚠️ El archivo de tags está vacío." -ForegroundColor Yellow
+    return 
+  }
+
+  # 3. El buscador con FZF (Tu lógica de bat está genial)
+  $selected = $lines | fzf --delimiter "`t" `
+    --prompt="Símbolo > " `
+    --nth=1,4 `
+    --preview 'bat --style=numbers --color=always --highlight-line {3} {2}' `
+    --reverse
+
+  if ($selected)
+  {
+    $parts = $selected -split "`t"
+    $file  = $parts[1].Trim()
         
-        # Extraer línea: ctags usa line:123 al final de la fila
-        $line = 1
-        if ($selected -match 'line:(\d+)') { $line = $matches[1] }
-
-        if (Test-Path $file) {
-            Invoke-CleanNvim @("+$line", "$file")
-        }else {
-            Write-Host "Archivo no encontrado: $file" -ForegroundColor Red
-        }
-
+    $line = 1
+    if ($selected -match 'line:(\d+)')
+    { 
+      $line = $matches[1] 
     }
+
+    if (Test-Path $file)
+    {
+      # Llamamos a tu función de apertura de Neovim
+      Invoke-CleanNvim @("+$line", "$file")
+    } else
+    {
+      Write-Host "Archivo no encontrado: $file" -ForegroundColor Red
+    }
+  }
 }
 
-function go-symbols-fzf {
-    # Excluimos vendor para que no se tarde mil años
-    $results = Get-ChildItem -Recurse -Filter *.go -Exclude "vendor","node_modules" -ErrorAction SilentlyContinue |
-        Select-String '^(func|type)\s' |
-        ForEach-Object { "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())" }
-
-    if (-not $results) { 
-        Write-Host "No se encontraron símbolos de Go." -ForegroundColor Yellow
-        return 
-    }
-
-    $selected = $results | fzf --delimiter "`t" --nth 3.. `
-        --prompt="Go symbol > " `
-        --preview 'bat --style=numbers --color=always --highlight-line {2} {1}' `
-        --reverse --height 40%
-
-    if ($selected) {
-        $parts = $selected -split "`t"
-        # Invocamos Neovim en la línea exacta
-        Invoke-CleanNvim "+$($parts[1])" "$($parts[0])"
-    }
-}
-
-function go-symbols-fzf {
-    # Buscamos: func (metodos), func Nombre, type Nombre struct, e interfaces
-    $results = Get-ChildItem -Recurse -Filter *.go -Exclude "vendor","node_modules" -ErrorAction SilentlyContinue |
-        Select-String '^(func|type)\s' |
-        ForEach-Object { "$($_.Path)`t$($_.LineNumber)`t$($_.Line.Trim())" }
-
-    if (-not $results) { return }
-
-    $selected = $results | fzf --delimiter "`t" --nth 3.. `
-        --prompt="󰟝 Go Symbol > " `
-        --preview 'bat --style=numbers --color=always --highlight-line {2} {1}' `
-        --reverse --height 50%
-
-    if ($selected) {
-        $parts = $selected -split "`t"
-        Invoke-CleanNvim "+$($parts[1])" "$($parts[0])"
-    }
-}
+# ALIAS PARA VELOCIDAD (Pon esto al final del archivo)
+Set-Alias -Name "gsym" -Value Get-FzfSymbol

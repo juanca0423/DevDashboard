@@ -1,51 +1,50 @@
-# --- RECURSOS VISUALES ---
 $logoJuanca = @'
-  ▄███████▄      ▄▄▄                     ▄▄▄▄▄▄▄        
- ██      ▀█▄     ███                    ███▀▀▀▀▀        
-██  ▄█▀▀▀██      ███ ██ ██  ▀▀█▄ ████▄ ███        ▀▀█▄  
+  ▄██████▄       ▄▄▄                     ▄▄▄▄▄▄▄        
+ ██     ▀█▄      ███                    ███▀▀▀▀▀        
+██  ▄█▀▀▀██      ███ ██ ██  ▀▀█▄ ████▄ ███       ▀▀█▄  
 ██  ██   ██ ▄▄▄  ███ ██ ██ ▄█▀██ ██ ██ ███      ▄█▀██  
  ██▄ ▀▀▀▀▀▀  ▀████▀  ▀██▀█ ▀█▄██ ██ ██ ▀███████ ▀█▄██  
   ▀▀██████▀▀                                           
 '@
 
-function Show-DashboardHeader {
-    Clear-Host
+function Show-DashboardHeader
+{
+  Clear-Host
     
-    # Elegir color aleatorio para el logo
-    $colores = "Magenta","Cyan","Yellow","Green","Blue"
-    $colorAleatorio = $colores | Get-Random
+  # Elegir color aleatorio para el logo
+  $colores = "Magenta","Cyan","Yellow","Green","Blue"
+  $colorAleatorio = $colores | Get-Random
     
-    # Imprimir Logo
-    Write-Host "`n$logoJuanca`n" -ForegroundColor $colorAleatorio
+  # Imprimir Logo
+  Write-Host "`n$logoJuanca`n" -ForegroundColor $colorAleatorio
 
-    # Línea de estado con iconos
-    $fecha = Get-Date -Format "dd/MM/yyyy HH:mm"
-    Write-Host "   Git Ready " -ForegroundColor Magenta -NoNewline
-    Write-Host "| " -ForegroundColor DarkGray -NoNewline
-    Write-Host " Go " -ForegroundColor Cyan -NoNewline
-    Write-Host "| " -ForegroundColor DarkGray -NoNewline
-    Write-Host " JS " -ForegroundColor Yellow -NoNewline
-    Write-Host "| " -ForegroundColor DarkGray -NoNewline
-    Write-Host " HTML " -ForegroundColor Red -NoNewline
-    Write-Host "| " -ForegroundColor DarkGray -NoNewline
-    Write-Host " CSS " -ForegroundColor Blue -NoNewline
-    Write-Host "|   $fecha" -ForegroundColor White
+  # Línea de estado con iconos
+  $fecha = Get-Date -Format "dd/MM/yyyy HH:mm"
+  Write-Host "   Git Ready " -ForegroundColor Magenta -NoNewline
+  Write-Host "| " -ForegroundColor DarkGray -NoNewline
+  Write-Host " Go " -ForegroundColor Cyan -NoNewline
+  Write-Host "| " -ForegroundColor DarkGray -NoNewline
+  Write-Host " JS " -ForegroundColor Yellow -NoNewline
+  Write-Host "| " -ForegroundColor DarkGray -NoNewline
+  Write-Host " HTML " -ForegroundColor Red -NoNewline
+  Write-Host "| " -ForegroundColor DarkGray -NoNewline
+  Write-Host " CSS " -ForegroundColor Blue -NoNewline
+  Write-Host "|   $fecha" -ForegroundColor White
     
-    Write-Host ("─" * 65) -ForegroundColor DarkGray # Línea separadora estética
-    Write-Host ""
+  Write-Host ("─" * 65) -ForegroundColor DarkGray # Línea separadora estética
+  Write-Host ""
 }
 Show-DashboardHeader
 # Menú de accesos directos
 Write-Host "  [p]  📂 Ir a Proyectos (Desarrollo)" -ForegroundColor Cyan
 Write-Host "  [g]   Abrir Guía Master GitHub" -ForegroundColor Green
-Write-Host "  [n]  🚀 Crear Nuevo Proyecto (nuevo-repo)" -ForegroundColor Yellow
+Write-Host "  [n]  🚀 Crear Nuevo Proyecto (New-repo)" -ForegroundColor Yellow
 Write-Host "  [c]   Configurar Entorno (Perfil)" -ForegroundColor Blue
 Write-Host " [dash]   Dashboard interactivo" -ForegroundColor Magenta
 Write-Host "  [q]  󰈆 Salir de la Terminal`n" -ForegroundColor Red
 
 Write-Host ("─" * 90) -ForegroundColor DarkGray
 Write-Host ""
-Write-Host "Cronómetro: $($timer.ElapsedMilliseconds)ms" -ForegroundColor DarkGray
 
 # --- LÓGICA DE FUNCIONES ---
 
@@ -54,136 +53,320 @@ Write-Host "Cronómetro: $($timer.ElapsedMilliseconds)ms" -ForegroundColor DarkG
 $rutaProyectos = "C:\Users\Usuario\Documents\Desarrollo"
 
 # Ruta de donde están tus SCRIPTS (para que el preview funcione)
-$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-function v { 
-    nvim $args
+#$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+function v
+{ 
+  nvim $args
 }
 
-function conf {
-    nvim $PROFILE
+function conf
+{
+  nvim $PROFILE
 }
 
-function guia { nvim "$rutaProyectos\DocMd\Github.md" }
+function guia
+{ nvim "$rutaProyectos\DocMd\Github.md" 
+}
 
 # [p] Ir a proyectos
-function p { Set-Location $rutaProyectos; ll }
-function g { guia }
-# [n] Crear nuevo repo pasando el nombre
-function n { 
-    if ($args.Count -eq 0) {
-        Write-Host "⚠️ Error: Debes poner un nombre. Ej: n mi-proyecto-contable" -ForegroundColor Red
-    } else {
-        # Aquí llama a tu comando 'nuevo-repo' pasando todos los argumentos
-        nuevo-repo $args 
-    }
+function p
+{ Set-Location $rutaProyectos; ll 
+}
+function g
+{ guia 
+}
+# [n] Crear New-repo pasando el nombre
+function n
+{ 
+  if ($args.Count -eq 0)
+  {
+    Write-Host "⚠️ Error: Debes poner un nombre. Ej: n mi-proyecto-contable" -ForegroundColor Red
+  } else
+  {
+    # Aquí llama a tu comando 'New-repo' pasando todos los argumentos
+    New-repo $args 
+  }
 }
 
-function q { exit }
+function q
+{ exit 
+}
 
 # --- Docker Aliases (Corregidos) ---
-function d-up { docker-compose up --build -d } # -d para que no bloquee la terminal
-function d-down { docker-compose down }
-function d-logs { docker-compose logs -f }
-function d-ps { docker-compose ps -a }
+function Start-DockerEnv
+{ docker-compose up --build -d 
+}
+function Stop-DockerEnv
+{ docker-compose down 
+}
+function Get-ContainerLog
+{ docker-compose logs -f 
+}
+function Get-ContainerList
+{ docker-compose ps -a 
+}
 
 # --- Docker Aliases (Mejorados) ---
-function d-entrar { 
-    $proyecto = Split-Path -Leaf (Get-Location)
-    # Intentamos buscar por el nombre que asigna tu script 'nuevo-repo'
-    $container = "$($proyecto)_app"
-    if (docker ps -q -f "name=$container") {
-        docker exec -it $container sh
-    } else {
-        # Fallback: buscar cualquier cosa que tenga 'app' y esté corriendo en esta carpeta
-        $id = docker ps -q -f "name=app" | Select-Object -First 1
-        if ($id) { docker exec -it $id sh } 
-        else { Write-Host "❌ Contenedor no encontrado." -ForegroundColor Red }
+function Enter-App
+{ 
+  $proyecto = Split-Path -Leaf (Get-Location)
+  # Intentamos buscar por el nombre que asigna tu script 'New-repo'
+  $container = "$($proyecto)_app"
+  if (docker ps -q -f "name=$container")
+  {
+    docker exec -it $container sh
+  } else
+  {
+    # Fallback: buscar cualquier cosa que tenga 'app' y esté corriendo en esta carpeta
+    $id = docker ps -q -f "name=app" | Select-Object -First 1
+    if ($id)
+    { docker exec -it $id sh 
+    } else
+    { Write-Host "❌ Contenedor no encontrado." -ForegroundColor Red 
     }
+  }
 }
 
-# --- Git Sincronización (Con validación) ---
-function g-all {
-    if (-not (git rev-parse --is-inside-work-tree 2>$null)) {
-        Write-Host "❌ No es un repositorio Git." -ForegroundColor Red; return
-    }
-    $msg = if ($args.Count -eq 0) { "Update $(Get-Date -Format 'yyyy-MM-dd HH:mm')" } else { $args -join " " }
-    git add .
-    git commit -m $msg
-    git push
-    Write-Host "🚀 Sincronizado!" -ForegroundColor Magenta
+function Show-GitAll
+{
+  git rev-parse --is-inside-work-tree > $null 2>&1
+    
+  if ($LASTEXITCODE -ne 0)
+  {
+    Write-Host "❌ No es un repositorio Git." -ForegroundColor Red
+    return
+  }
+  # Tu lógica de commit...
+  $msg = if ($args.Count -eq 0)
+  { 
+    "Update $(Get-Date -Format 'yyyy-MM-dd HH:mm')" 
+  } else
+  { 
+    $args -join " " 
+  }
+  git add .
+  git commit -m $msg
+  git push
+  Write-Host "🚀 Sincronizado!" -ForegroundColor Magenta
 }
 
-function gco {git-checkout-fzf}
-function glog {git-log-fzf}
-function gshow {git-show-fzf}
-function sym {symbols-fzf}
-function gosym {go-symbols-fzf}
-function gstash {git-stash-fzf}
-function gsp {git-stash-pop-fzf}
-function gsa {git-stash-apply-fzf}
-function gsd {git-stash-drop-fzf}
+function gco
+{Switch-GitBranch
+}
+function glog
+{Get-GitLog
+}
+function gshow
+{Show-GitCommit
+}
+
+function Show-Sym
+{
+  # Buscamos de forma superficial para decidir qué función disparar
+  if (Get-ChildItem -Filter *.go -ErrorAction SilentlyContinue)
+  { Get-GoSymbols; return 
+  }
+  if (Get-ChildItem -Filter *.py -ErrorAction SilentlyContinue)
+  { Get-PySymbols; return 
+  }
+  if (Get-ChildItem -Filter *.js -ErrorAction SilentlyContinue)
+  { Get-JsSymbols; return 
+  }
+  if (Get-ChildItem -Filter *.hbs -ErrorAction SilentlyContinue)
+  { Get-HbsSymbols; return 
+  }
+}
+
+# Esta función oculta ayuda a disparar el buscador correcto
+function Invoke-SymbolSelector
+{
+  param([string]$Language)
+  switch ($Language)
+  {
+    "Go"
+    { Get-GoSymbols 
+    }
+    "Python"
+    { Get-PySymbols 
+    }
+    "JavaScript"
+    { Get-JsSymbols 
+    }
+    "Handlebars"
+    { Get-HbsSymbols 
+    }
+    "CSS"
+    { Get-CssSymbols 
+    }
+  }
+}
+
+function Get-SymbolByLanguage
+{
+  # 1. Creamos una lista limpia de lenguajes detectados
+  $langs = @()
+  if (Test-Path "*.go")
+  { $langs += "Go" 
+  }
+  if (Test-Path "*.py")
+  { $langs += "Python" 
+  }
+  if (Test-Path "*.js")
+  { $langs += "JavaScript" 
+  }
+  if (Test-Path "*.hbs")
+  { $langs += "Handlebars" 
+  }
+  if (Test-Path "*.css")
+  { $langs += "CSS" 
+  }
+
+  # 2. Si no hay nada, mostramos tu recomendación de seguridad
+  if ($langs.Count -eq 0)
+  {
+    Write-Host "----------------------------------------------------------" -ForegroundColor Gray
+    Write-Host "⚠️ No se detectaron lenguajes con buscadores específicos." -ForegroundColor Yellow
+    Write-Host "💡 Sugerencia: Si este proyecto tiene etiquetas de Ctags," -ForegroundColor Cyan
+    Write-Host "   ejecuta manualmente: Get-FzfSymbol" -ForegroundColor White
+    Write-Host "----------------------------------------------------------" -ForegroundColor Gray
+    return
+  }
+  # 3. Variable para decidir qué lenguaje ejecutar
+  $finalLanguage = ""
+
+  if ($langs.Count -eq 1)
+  {
+    # Solo hay uno: lo seleccionamos directo
+    $finalLanguage = $langs[0]
+  } else
+  {
+    # Hay varios: Forzamos a FZF a mostrar el menú
+    # Usamos --header para que sepas qué estás haciendo
+    $finalLanguage = $langs | fzf --height=10 --reverse --header="Selecciona lenguaje para Símbolos" --prompt="> "
+  }
+
+  # 4. Ejecutamos según la elección (usando nombres corregidos)
+  if (-not [string]::IsNullOrWhiteSpace($finalLanguage))
+  {
+    Write-Host "🚀 Abriendo símbolos de: $finalLanguage" -ForegroundColor Magenta
+        
+    switch ($finalLanguage)
+    {
+      "Go"
+      { Get-GoSymbols 
+      }
+      "Python"
+      { Get-PySymbols 
+      }
+      "JavaScript"
+      { Get-JsSymbols 
+      }
+      "Handlebars"
+      { Get-HbsSymbols 
+      }
+      "CSS"
+      { Get-CssSymbols 
+      }
+    }
+  }
+}
+# ALIAS PARA TU MEMORIA MUSCULAR
+Set-Alias -Name "ssym" -Value Get-SymbolByLanguage
+function gosym
+{Get-GoSymbols
+}
+function gstash
+{Get-GitStash
+}
+function gsp
+{Restore-GitStash
+}
+function gsa
+{git-stash-apply-fzf
+}
+function gsd
+{Remove-GitStash
+}
 
 # Limpiar caché de Air y reiniciar
-function air-clean { 
-    if (Test-Path "./tmp") { Remove-Item -Recurse -Force ./tmp }
-    docker-compose restart 
+function Show-AirClean
+{ 
+  if (Test-Path "./tmp")
+  { Remove-Item -Recurse -Force ./tmp 
+  }
+  docker-compose restart 
 }
 
-function open { start $args } # Abrir una web: open https://google.com o Abrir un archivo HTML local: open .\index.html
+function open
+{ Start-Process $args 
+} # Abrir una web: open https://google.com o Abrir un archivo HTML local: open .\index.html
 
-function ll {
-    if (-not (Get-Module -Name Terminal-Icons)) {
-        Import-Module Terminal-Icons -ErrorAction SilentlyContinue
-    }
-    Get-ChildItem $args
+function ll
+{
+  if (-not (Get-Module -Name Terminal-Icons))
+  {
+    Import-Module Terminal-Icons -ErrorAction SilentlyContinue
+  }
+  Get-ChildItem $args
 }
 
 # Alias de una sola letra para listar
-function l { ll }
-
-function dash {Show-Dashboard}
-
-# Función para entrar a la DB de Postgres del proyecto actual
-function db-shell {
-    $proyecto = Split-Path -Leaf (Get-Location)
-    $contenedorDB = "$($proyecto)_db"
-    
-    if (docker ps -q -f name=$contenedorDB) {
-        Write-Host "🐘 Conectando a: $contenedorDB" -ForegroundColor Cyan
-        docker exec -it $contenedorDB psql -U admin -d "$($proyecto)_db"
-    } else {
-        Write-Host "❌ El contenedor $contenedorDB no está corriendo. Ejecuta 'docker-compose up -d' primero." -ForegroundColor Red
-    }
+function l
+{ ll 
 }
 
-function re {
+function dash
+{Show-Dashboard
+}
+
+# Función para entrar a la DB de Postgres del proyecto actual
+function Enter-DB
+{
+  $proyecto = Split-Path -Leaf (Get-Location)
+  $contenedorDB = "$($proyecto)_db"
+    
+  if (docker ps -q -f name=$contenedorDB)
+  {
+    Write-Host "🐘 Conectando a: $contenedorDB" -ForegroundColor Cyan
+    docker exec -it $contenedorDB psql -U admin -d "$($proyecto)_db"
+  } else
+  {
+    Write-Host "❌ El contenedor $contenedorDB no está corriendo. Ejecuta 'docker-compose up -d' primero." -ForegroundColor Red
+  }
+}
+
+function re
+{
   Import-Module DevDashboard -Force -DisableNameChecking
-  # . $PROFILE; Write-Host "`n♻️ Perfil recargado!" -ForegroundColor Cyan 
+}
+
+function New-repo
+{
+  param([string]$nombre)
+  if (-not $nombre)
+  {
+    Write-Host "⚠️  Indica un nombre para el proyecto." -ForegroundColor Yellow
+    return
   }
 
-function nuevo-repo {
-    param([string]$nombre)
-    if (-not $nombre) {
-        Write-Host "⚠️  Indica un nombre para el proyecto." -ForegroundColor Yellow
-        return
-    }
+  # 1. Estructura de Carpetas
+  $folders = "ctrl", "db", "help", "middleware", "static", "models", "rutas", "config", "views", "tests"
+  New-Item -ItemType Directory -Path $nombre -ErrorAction SilentlyContinue
+  Set-Location $nombre
+  foreach ($f in $folders)
+  { New-Item -ItemType Directory -Path $f -ErrorAction SilentlyContinue 
+  }
 
-    # 1. Estructura de Carpetas
-    $folders = "ctrl", "db", "help", "middleware", "static", "models", "rutas", "config", "views", "tests"
-    New-Item -ItemType Directory -Path $nombre -ErrorAction SilentlyContinue
-    Set-Location $nombre
-    foreach ($f in $folders) { New-Item -ItemType Directory -Path $f -ErrorAction SilentlyContinue }
+  # 2. Inicializar Go
+  go mod init $nombre
+  Write-Host "📦 Descargando dependencias..." -ForegroundColor Cyan
+  go get github.com/gofiber/fiber/v2
+  go get github.com/gofiber/template/handlebars/v3
+  go get gorm.io/gorm
+  go get gorm.io/driver/postgres
 
-    # 2. Inicializar Go
-    go mod init $nombre
-    Write-Host "📦 Descargando dependencias..." -ForegroundColor Cyan
-    go get github.com/gofiber/fiber/v2
-    go get github.com/gofiber/template/handlebars/v3
-    go get gorm.io/gorm
-    go get gorm.io/driver/postgres
-
-    # 3. ARCHIVOS DE CONFIGURACIÓN
-    @"
+  # 3. ARCHIVOS DE CONFIGURACIÓN
+  @"
 # Binarios y temporales
 tmp/
 main
@@ -192,7 +375,7 @@ postgres_data/
 .env
 "@ | Out-File -Encoding utf8 .gitignore
 
-    @"
+  @"
 .git
 tmp
 postgres_data
@@ -200,7 +383,7 @@ Dockerfile
 docker-compose.yml
 "@ | Out-File -Encoding utf8 .dockerignore
 
-    @"
+  @"
 DB_HOST=db
 DB_PORT=5432
 DB_USER=admin
@@ -209,8 +392,8 @@ DB_NAME=$($nombre)_db
 "@ | Out-File -Encoding utf8 .env
  
 
-    # Dockerfile Corregido (Con herramientas de Test y Debug)
-    @"
+  # Dockerfile Corregido (Con herramientas de Test y Debug)
+  @"
 FROM golang:alpine
 WORKDIR /app
 RUN apk add --no-cache gcc musl-dev
@@ -223,8 +406,8 @@ COPY . .
 CMD ["air", "-c", ".air.toml"]
 "@ | Out-File -Encoding utf8 Dockerfile
 
-    # Docker-compose (Con el Healthcheck que ya tenías)
-    @"
+  # Docker-compose (Con el Healthcheck que ya tenías)
+  @"
 services:
   app:
     build: .
@@ -256,9 +439,9 @@ volumes:
   postgres_data:
 "@ | Out-File -Encoding utf8 docker-compose.yml
 
-    # 4. CÓDIGO GO + TEST (Boilerplate)
-    # main.go, db/db.go, rutas/rutas.go (Igual a los tuyos...)
-    @"
+  # 4. CÓDIGO GO + TEST (Boilerplate)
+  # main.go, db/db.go, rutas/rutas.go (Igual a los tuyos...)
+  @"
 package main
 import (
 	"$nombre/db"
@@ -276,7 +459,7 @@ func main() {
 }
 "@ | Out-File -Encoding utf8 main.go
 
-    @"
+  @"
 package db
 import (
 	"fmt"
@@ -294,7 +477,7 @@ func Connect() {
 }
 "@ | Out-File -Encoding utf8 db/db.go
 
-    @"
+  @"
 package ctrl
 import "github.com/gofiber/fiber/v2"
 func Index(c *fiber.Ctx) error {
@@ -302,7 +485,7 @@ func Index(c *fiber.Ctx) error {
 }
 "@ | Out-File -Encoding utf8 ctrl/ctrl.go
 
-    @"
+  @"
 package rutas
 import (
 	"$nombre/ctrl"
@@ -313,8 +496,8 @@ func Setup(app *fiber.App) {
 }
 "@ | Out-File -Encoding utf8 rutas/rutas.go
    
-    # NUEVO: Archivo de Test para Neotest
-    @"
+  # NUEVO: Archivo de Test para Neotest
+  @"
 package tests
 import "testing"
 func TestHealthCheck(t *testing.T) {
@@ -325,11 +508,11 @@ func TestHealthCheck(t *testing.T) {
 }
 "@ | Out-File -Encoding utf8 tests/main_test.go
 
-    @"
+  @"
 <h1>{{Title}}</h1>
 "@ | Out-File -Encoding utf8 views/index.hbs
 
-    @"
+  @"
 root = "."
 tmp_dir = "tmp"
 [build]
@@ -339,49 +522,55 @@ tmp_dir = "tmp"
   poll = true
 "@ | Out-File -Encoding utf8 .air.toml
 
-    # 5. Finalizar
-    git init; git add .; git commit -m "feat: initial commit from automation script"
-    Write-Host "`n🚀 PROYECTO '$nombre' CREADO Y LISTO PARA NEOTEST" -ForegroundColor Magenta
+  # 5. Finalizar
+  git init; git add .; git commit -m "feat: initial commit from automation script"
+  Write-Host "`n🚀 PROYECTO '$nombre' CREADO Y LISTO PARA NEOTEST" -ForegroundColor Magenta
 }
 
 # --- OH MY POSH (TEMA CORREGIDO) ---
 $poshConfig = "C:\Users\Usuario\Documents\PoshThemes\catppuccin_mocha.omp.json"
 
-if (Test-Path $poshConfig) {
-    # Usamos la ruta absoluta que encontramos para que no falle nunca
-    oh-my-posh init pwsh --config $poshConfig | Invoke-Expression
-} else {
-    # Plan B: Si por algo se mueve, busca en la ruta estándar de temas
-    oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\catppuccin_mocha.omp.json" | Invoke-Expression
+if (Test-Path $poshConfig)
+{
+  # Usamos la ruta absoluta que encontramos para que no falle nunca
+  oh-my-posh init pwsh --config $poshConfig | Invoke-Expression
+} else
+{
+  # Plan B: Si por algo se mueve, busca en la ruta estándar de temas
+  oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\catppuccin_mocha.omp.json" | Invoke-Expression
 }
 
-function sync-dotfiles {
-    $repoNvim = "$env:LOCALAPPDATA\nvim"
-    $backupDir = "$repoNvim\backups_config" # Carpeta dentro de nvim
+function sync-dotfiles
+{
+  $repoNvim = "$env:LOCALAPPDATA\nvim"
+  $backupDir = "$repoNvim\backups_config" # Carpeta dentro de nvim
     
-    # 1. Crear carpetas de respaldo si no existen
-    if (-not (Test-Path "$backupDir\PoshThemes")) { 
-        New-Item -ItemType Directory -Path "$backupDir\PoshThemes" -Force 
-    }
+  # 1. Crear carpetas de respaldo si no existen
+  if (-not (Test-Path "$backupDir\PoshThemes"))
+  { 
+    New-Item -ItemType Directory -Path "$backupDir\PoshThemes" -Force 
+  }
 
-    if (-not (Test-Path "$backupDir\PowerShell")) { 
-        New-Item -ItemType Directory -Path "$backupDir\PowerShell" -Force 
-    }
+  if (-not (Test-Path "$backupDir\PowerShell"))
+  { 
+    New-Item -ItemType Directory -Path "$backupDir\PowerShell" -Force 
+  }
 
-    Write-Host "🔄 Sincronizando archivos de configuración..." -ForegroundColor Cyan
+  Write-Host "🔄 Sincronizando archivos de configuración..." -ForegroundColor Cyan
 
-    # 2. Copiar el Perfil de PowerShell
-    Copy-Item -Path $PROFILE -Destination "$backupDir\PowerShell\Microsoft.PowerShell_profile.ps1" -Force
+  # 2. Copiar el Perfil de PowerShell
+  Copy-Item -Path $PROFILE -Destination "$backupDir\PowerShell\Microsoft.PowerShell_profile.ps1" -Force
     
-    # 3. Copiar el Tema de Oh My Posh
-    $temaPath = "C:\Users\Usuario\Documents\PoshThemes\catppuccin_mocha.omp.json"
-    if (Test-Path $temaPath) {
-        Copy-Item -Path $temaPath -Destination "$backupDir\PoshThemes\catppuccin_mocha.omp.json" -Force
-    }
+  # 3. Copiar el Tema de Oh My Posh
+  $temaPath = "C:\Users\Usuario\Documents\PoshThemes\catppuccin_mocha.omp.json"
+  if (Test-Path $temaPath)
+  {
+    Copy-Item -Path $temaPath -Destination "$backupDir\PoshThemes\catppuccin_mocha.omp.json" -Force
+  }
 
-    Write-Host "✅ Todo respaldado en GitHub correctamente." -ForegroundColor Green
+  Write-Host "✅ Todo respaldado en GitHub correctamente." -ForegroundColor Green
 
-    Write-Host "`n📦 Archivos listos para el commit en: $repoNvim" -ForegroundColor Yellow
-    Set-Location $repoNvim
-    git status 
+  Write-Host "`n📦 Archivos listos para el commit en: $repoNvim" -ForegroundColor Yellow
+  Set-Location $repoNvim
+  git status 
 }
