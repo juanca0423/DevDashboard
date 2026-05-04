@@ -59,6 +59,11 @@ function v
   nvim $args
 }
 
+function Get-Ubuntu
+{
+  wsl.exe -d Ubuntu 
+}
+
 function conf
 {
   nvim $PROFILE

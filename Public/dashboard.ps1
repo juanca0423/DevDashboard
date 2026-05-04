@@ -92,6 +92,7 @@ function dsh
           "Get-GrepHere"        = "🔍 Búsqueda de texto en la carpeta actual"
           "New-Repo"            = "📁 Crear nuevo repositorio con estructura"
           "Show-Dashboard"      = "Abrir el panel principal DevDashboard"
+          "Show-NavExplorer-fzf"= "📂 Explorador de Archivos (FZF)"
         }
 
         $dashCommands.Keys | 
