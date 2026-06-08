@@ -138,6 +138,32 @@ function Get-GitStash
   return ($stash -split ':')[0]
 }
 
+function gac($mensaje)
+{
+  if (-not $mensaje)
+  {
+    Write-Host "❌ Error: Te falta el mensaje del commit." -ForegroundColor Red
+    Write-Host "Uso: gac 'mi mensaje de cambio'"
+    return
+  }
+
+  git add .
+  git commit -m "$mensaje"
+    
+  Write-Host "✅ Cambios guardados localmente." -ForegroundColor Green
+    
+  # Preguntar si quieres hacer push de una vez
+  $respuesta = Read-Host "¿Quieres hacer push ahora? (s/n)"
+  if ($respuesta -eq "s" -or $respuesta -eq "S")
+  {
+    git push
+    Write-Host "🚀 ¡Todo arriba en la nube!" -ForegroundColor Cyan
+  } else
+  {
+    Write-Host "👍 Ok, commit guardado pero sin push." -ForegroundColor Yellow
+  }
+}
+
 function Get-GitLog
 {
   git rev-parse --is-inside-work-tree 2>$null | Out-Null

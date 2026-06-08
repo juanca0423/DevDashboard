@@ -59,6 +59,23 @@ function v
   nvim $args
 }
 
+# Función para abrir tu proyecto directamente en Neovim
+function jc
+{
+  nvim "$HOME/Desktop/pruevas/States/main.go"
+}
+
+# Función para saltar a la carpeta del proyecto
+function cdjc
+{
+  Set-Location "$HOME/Desktop/pruevas/States"
+}
+
+# Tu alias para la configuración de Neovim (simplificado)
+function c
+{
+  nvim "$HOME/AppData/Local/nvim/init.lua"
+}
 function Get-Ubuntu
 {
   wsl.exe -d Ubuntu 
@@ -77,6 +94,7 @@ function guia
 function p
 { Set-Location $rutaProyectos; ll 
 }
+
 function g
 { guia 
 }
@@ -97,19 +115,30 @@ function q
 { exit 
 }
 
-# --- Docker Aliases (Corregidos) ---
+# --- Docker Aliases (Versión Robusta) ---
 function Start-DockerEnv
-{ docker-compose up --build -d 
+{ 
+  docker compose -f docker-compose.yml up --build -d 
 }
+Set-Alias -Name "d-up" -Value Start-DockerEnv
+
 function Stop-DockerEnv
-{ docker-compose down 
+{ 
+  docker compose -f docker-compose.yml down 
 }
+Set-Alias -Name "d-down" -Value Stop-DockerEnv
+
 function Get-ContainerLog
-{ docker-compose logs -f 
+{ 
+  docker compose -f docker-compose.yml logs -f 
 }
+Set-Alias -Name "d-log" -Value Get-ContainerLog
+
 function Get-ContainerList
-{ docker-compose ps -a 
+{ 
+  docker compose ps -a 
 }
+Set-Alias -Name "d-ps" -Value Get-ContainerList
 
 # --- Docker Aliases (Mejorados) ---
 function Enter-App
@@ -129,6 +158,22 @@ function Enter-App
     } else
     { Write-Host "❌ Contenedor no encontrado." -ForegroundColor Red 
     }
+  }
+}
+
+# Función para entrar a la DB de Postgres del proyecto actual
+function Enter-DB
+{
+  $proyecto = Split-Path -Leaf (Get-Location)
+  $contenedorDB = "$($proyecto)_db"
+    
+  if (docker ps -q -f name=$contenedorDB)
+  {
+    Write-Host "🐘 Conectando a: $contenedorDB" -ForegroundColor Cyan
+    docker exec -it $contenedorDB psql -U admin -d "$($proyecto)_db"
+  } else
+  {
+    Write-Host "❌ El contenedor $contenedorDB no está corriendo. Ejecuta 'docker-compose up -d' primero." -ForegroundColor Red
   }
 }
 
@@ -164,6 +209,143 @@ function glog
 function gshow
 {Show-GitCommit
 }
+
+function New-GitWorktree
+{
+  param (
+    [Parameter(Mandatory=$true)]
+    [string]$BranchName,   # El nombre de la rama/tarea (ej. 'feature/ajustes-costos')
+    [string]$FolderName    # Opcional: Nombre de la carpeta si quieres que sea diferente de la rama
+  )
+
+  # 1. Verificar si estamos dentro de un repositorio de Git
+  $isGitRepo = git rev-parse --is-inside-work-tree 2>$null
+  if (-not $isGitRepo)
+  {
+    Write-Host "❌ Error: ¡No estás dentro de un repositorio de Git!" -ForegroundColor Red
+    return
+  }
+
+  # 2. Definir nombres limpios para la carpeta secundaria
+  # Si no nos dan un nombre de carpeta, limpiamos el nombre de la rama (quitamos barras si las hay)
+  if (-not $FolderName)
+  {
+    $FolderName = $BranchName -replace '.*/', ''
+  }
+
+  # Determinamos la ruta base del repositorio actual para saber dónde guardar el worktree
+  $RepoRoot = (git rev-parse --show-toplevel).Trim()
+  $RepoName = Split-Path $RepoRoot -Leaf
+    
+  # Creamos la carpeta de los worktrees al mismo nivel o en una carpeta .worktrees dedicada
+  # Siguiendo tu estructura, lo organizaremos en una carpeta ".worktrees" limpia
+  $WorktreePath = Join-Path (Split-Path $RepoRoot -Parent) "$RepoName.worktrees/$FolderName"
+
+  Write-Host "`n🚀 Inicializando nuevo entorno Git Worktree..." -ForegroundColor Cyan
+  Write-Host "📂 Repositorio base:  $RepoName" -ForegroundColor Gray
+  Write-Host "🌿 Nueva rama:         $BranchName" -ForegroundColor Magenta
+  Write-Host "📍 Destino físico:    $WorktreePath" -ForegroundColor Gray
+  Write-Host "--------------------------------------------------" -ForegroundColor DarkGray
+
+  # 3. Ejecutar el comando nativo de Git
+  # -b crea la rama si no existe; si ya existe, puedes quitar el -b, pero este flujo asume tareas nuevas
+  git worktree add $WorktreePath -b $BranchName
+
+  if ($LASTEXITCODE -eq 0)
+  {
+    Write-Host "`n✨ ¡Entorno creado con éxito!" -ForegroundColor Green
+    Write-Host "👉 Para empezar a trabajar en esta rama, ejecuta:" -ForegroundColor Yellow
+    Write-Host "   cd `"$WorktreePath`"" -ForegroundColor White
+  } else
+  {
+    Write-Host "`n❌ Hubo un error al intentar crear el worktree. Revisa los mensajes de Git arriba." -ForegroundColor Red
+  }
+}
+
+# Alias corto para el Dashboard o uso rápido
+Set-Alias -Name gw -Value New-GitWorktree
+function Remove-GitWorktree
+{
+  param (
+    [Parameter(Mandatory=$true)]
+    [string]$Target # Ahora puedes pasarle solo 'local' o 'ini/local'
+  )
+
+  # 1. Verificar si estamos dentro de un repositorio de Git
+  $isGitRepo = git rev-parse --is-inside-work-tree 2>$null
+  if (-not $isGitRepo)
+  {
+    Write-Host "❌ Error: ¡Debes ejecutar este comando desde la raíz de tu proyecto principal!" -ForegroundColor Red
+    return
+  }
+
+  # 2. Automatizar rutas base
+  $RepoRoot = (git rev-parse --show-toplevel).Trim()
+  $RepoName = Split-Path $RepoRoot -Leaf
+  $ParentDir = Split-Path $RepoRoot -Parent
+
+  # 3. Limpiar el parámetro para obtener siempre el nombre de la carpeta física
+  $CleanFolderName = $Target -replace '.*/', ''
+  $FullPath = Join-Path $ParentDir "$RepoName.worktrees/$CleanFolderName"
+
+  Write-Host "`n🧹 Removiendo entorno de trabajo para: $CleanFolderName..." -ForegroundColor Cyan
+    
+  if (-not (Test-Path $FullPath))
+  {
+    Write-Host "❌ Error: No se encontró la carpeta física en: $FullPath" -ForegroundColor Red
+    return
+  }
+
+  # 🚀 El Truco: Buscar el nombre completo de la rama en Git usando el nombre de la carpeta
+  # Buscamos cualquier rama local que termine en '/nombre' o que se llame exactamente 'nombre'
+  $BranchName = (git branch --format='%(refname:short)' | Where-Object { $_ -eq $Target -or $_ -like "*/$CleanFolderName" }) | Select-Object -First 1
+
+  # Si Git no encontró ninguna rama con ese método, usamos lo que puso el usuario por defecto
+  if (-not $BranchName)
+  {
+    $BranchName = $Target
+  }
+
+  # 4. Eliminar el contenedor físico en Git
+  git worktree remove $FullPath
+
+  # 5. Auto-limpieza física de residuos en Windows
+  if ($LASTEXITCODE -eq 0)
+  {
+    if (Test-Path $FullPath)
+    {
+      Remove-Item -Path $FullPath -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    $ParentWorktreeDir = Split-Path $FullPath -Parent
+    if (Test-Path $ParentWorktreeDir)
+    {
+      $Items = Get-ChildItem -Path $ParentWorktreeDir -ErrorAction SilentlyContinue
+      if ($null -eq $Items)
+      {
+        Remove-Item -Path $ParentWorktreeDir -Force -ErrorAction SilentlyContinue
+      }
+    }
+
+    # 6. Borrar la rama encontrada con su nombre completo
+    Write-Host "🌿 Eliminando rama local '$BranchName' de Git..." -ForegroundColor DarkCyan
+    git branch -d $BranchName 2>$null
+
+    if ($LASTEXITCODE -eq 0)
+    {
+      Write-Host "✨ ¡Carpeta e historial de la rama eliminados con éxito absoluto!" -ForegroundColor Green
+    } else
+    {
+      Write-Host "⚠️ La carpeta se borró, pero la rama '$BranchName' no se eliminó de Git (posiblemente tiene cambios sin fusionar)." -ForegroundColor Yellow
+      Write-Host "👉 Para forzar el borrado de la rama ejecute: git branch -D $BranchName" -ForegroundColor Gray
+    }
+  } else
+  {
+    Write-Host "❌ Git no pudo remover el worktree. Revisa si hay archivos abiertos." -ForegroundColor Red
+  }
+}
+
+Set-Alias -Name gwr -Value Remove-GitWorktree
 
 function Show-Sym
 {
@@ -324,21 +506,7 @@ function dash
 {Show-Dashboard
 }
 
-# Función para entrar a la DB de Postgres del proyecto actual
-function Enter-DB
-{
-  $proyecto = Split-Path -Leaf (Get-Location)
-  $contenedorDB = "$($proyecto)_db"
-    
-  if (docker ps -q -f name=$contenedorDB)
-  {
-    Write-Host "🐘 Conectando a: $contenedorDB" -ForegroundColor Cyan
-    docker exec -it $contenedorDB psql -U admin -d "$($proyecto)_db"
-  } else
-  {
-    Write-Host "❌ El contenedor $contenedorDB no está corriendo. Ejecuta 'docker-compose up -d' primero." -ForegroundColor Red
-  }
-}
+
 
 function re
 {
