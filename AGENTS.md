@@ -39,6 +39,7 @@ PowerShell 7+ module providing an interactive CLI dashboard (`dsh`/`Show-Dashboa
 6. **Commented imports in dashboard.ps1** — Not needed since psm1 loads all
 7. **Get-FzfFiles uses `fd`** — Requires `fd` in PATH (not `fzf` native)
 8. **Engram persistence** — Server bug prevents mem_save; use OpenSpec (files) for SDD artifacts
+9. **.env loading** — DevDashboard.psm1 loads `.env.example` then `.env.local` (override) automatically
 
 ## Git Workflow
 - Conventional commits observed: `feat:`, `fix:`, `docs:`
@@ -52,8 +53,8 @@ PowerShell 7+ module providing an interactive CLI dashboard (`dsh`/`Show-Dashboa
 - Run `re` after edits to reload in current session
 - Run `./Installer.ps1` to propagate to installed module location
 - Lint with PSScriptAnalyzer using the provided settings file
-- Set `$env:DEVDASHBOARD_PROYECTOS` for custom projects path
-- Set `$env:GEMINI_API_KEY` and `$env:TENCENTDB_ADMIN_KEY` for AI features
+- Configura en `.env.local` (gitignored): `DEVDASHBOARD_PROYECTOS`, `GEMINI_API_KEY`, `TENCENTDB_ADMIN_KEY`
+- El módulo carga `.env.example` y `.env.local` automáticamente al importar
 
 ## SDD Configuration
 - **Pace**: Interactive
