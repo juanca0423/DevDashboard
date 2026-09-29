@@ -162,6 +162,8 @@ function Show-GitAdvancedMenu
       @{Label = "🔍 Bisect: Iniciar búsqueda"; Action = { Start-GitBisect }},
       @{Label = "🧹 Bisect: Reset / Terminar"; Action = { git bisect reset; Write-Host "Bisect finalizado." -ForegroundColor Green; pause }},
       @{Label = "📋 Git Blame (Ver autoría)";  Action = { Show-GitBlamePreview }},
+      @{Label = "🌳 Worktree: Crear nuevo";    Action = { New-GitWorktree }},
+      @{Label = "🗑️ Worktree: Eliminar";       Action = { Remove-GitWorktree }},
       @{Label = "« Volver";                    Action = { return "BACK" }}
     )
 
