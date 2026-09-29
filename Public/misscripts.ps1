@@ -48,9 +48,14 @@ Write-Host ""
 
 # --- LÓGICA DE FUNCIONES ---
 
-# Nota: Cambia "Usuario" por tu nombre de usuario real en Windows
-# Ruta de tus proyectos (LA QUE TÚ YA TIENES)
-$rutaProyectos = "C:\Users\Usuario\Documents\Desarrollo"
+# Nota: Configura DEVDASHBOARD_PROYECTOS en tu entorno (ej: $env:DEVDASHBOARD_PROYECTOS = "C:\ruta\a\proyectos")
+# Ruta de tus proyectos (fallback si no está configurado)
+$rutaProyectos = $env:DEVDASHBOARD_PROYECTOS
+if (-not $rutaProyectos -or -not (Test-Path $rutaProyectos))
+{
+  $rutaProyectos = "C:\Users\Usuario\Documents\Desarrollo"
+  Write-Host "⚠️ DEVDASHBOARD_PROYECTOS no configurado, usando fallback: $rutaProyectos" -ForegroundColor Yellow
+}
 
 # Ruta de donde están tus SCRIPTS (para que el preview funcione)
 #$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -70,6 +75,88 @@ function cdjc
 {
   Set-Location "$HOME/Desktop/pruevas/States"
 }
+
+# Función para trabajar con el agente 
+function agente
+{
+  aider.exer --model openai/qwen2.5-coder-3b-instruct --openai-api-base http://localhost:1234/v1 --openai-api-key fake-key --edit-format udiff
+}
+
+function Start-AgentMemory
+{
+  param(
+    [string]$cli = "qwen",
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$extraArgs
+  )
+
+  $deployDir = "$HOME\TencentDB-Agent-Memory\deploy\global-images"
+    
+  Write-Host "🚀 Verificando estado de TencentDB Agent Memory..." -ForegroundColor Cyan
+  $running = docker ps --format '{{.Names}}' | Select-String "tdai-memory-core"
+    
+  if (-not $running)
+  {
+    Write-Host "⏳ Iniciando contenedores de memoria..." -ForegroundColor Yellow
+    Push-Location $deployDir
+    bash ./start-all.sh
+    Pop-Location
+  } else
+  {
+    Write-Host "✅ TencentDB Agent Memory está activo." -ForegroundColor Green
+  }
+
+  # Leer clave admin de la memoria
+  $keyFile = "$deployDir\.admin-key"
+  $key = if (Test-Path $keyFile)
+  { 
+    Get-Content $keyFile 
+  } elseif ($env:TENCENTDB_ADMIN_KEY)
+  {
+    $env:TENCENTDB_ADMIN_KEY
+  }
+  else
+  { 
+    Write-Host "⚠️ TENCENTDB_ADMIN_KEY no configurado en entorno" -ForegroundColor Yellow
+    return
+  }
+
+  # Configurar variables de entorno para el proxy de memoria local
+  $env:OPENAI_BASE_URL = "http://127.0.0.1:8096/v1"
+  $env:OPENAI_API_KEY  = $key
+
+  Write-Host "🧠 Conectado al proxy local: $env:OPENAI_BASE_URL" -ForegroundColor Cyan
+    
+  # Selección dinámica de la CLI
+  if ($cli -eq "aider")
+  {
+    Write-Host "💻 Lanzando Aider CLI (Gemini 3.5 Flash-Lite Gratuito)..." -ForegroundColor Magenta
+        
+    if (-not $env:GEMINI_API_KEY)
+    {
+      Write-Host "⚠️ GEMINI_API_KEY no configurado en entorno" -ForegroundColor Yellow
+      return
+    }
+    $env:HF_HUB_DISABLE_SYMLINKS_WARNING = "1"
+
+    Remove-Item Env:\AIDER_MODEL -ErrorAction SilentlyContinue
+    Remove-Item Env:\AIDER_WEAK_MODEL -ErrorAction SilentlyContinue
+
+    # Usar el slug oficial de Gemini 3.5 Flash-Lite
+    aider --model gemini/gemini-3.5-flash-lite `
+      --weak-model gemini/gemini-3.5-flash-lite `
+      --no-show-model-warnings `
+      --test-cmd "go test ./..." `
+      --auto-test `
+      @extraArgs
+  } else
+  {
+    Write-Host "💻 Lanzando Qwen CLI..." -ForegroundColor Green
+    qwen @extraArgs
+  }
+}
+
+Set-Alias -Name memory -Value Start-AgentMemory
 
 # Tu alias para la configuración de Neovim (simplificado)
 function c
@@ -506,8 +593,6 @@ function dash
 {Show-Dashboard
 }
 
-
-
 function re
 {
   Import-Module DevDashboard -Force -DisableNameChecking
@@ -524,10 +609,11 @@ function New-repo
 
   # 1. Estructura de Carpetas
   $folders = "ctrl", "db", "help", "middleware", "static", "models", "rutas", "config", "views", "tests"
-  New-Item -ItemType Directory -Path $nombre -ErrorAction SilentlyContinue
+  New-Item -ItemType Directory -Path $nombre -ErrorAction SilentlyContinue | Out-Null
   Set-Location $nombre
   foreach ($f in $folders)
-  { New-Item -ItemType Directory -Path $f -ErrorAction SilentlyContinue 
+  { 
+    New-Item -ItemType Directory -Path $f -ErrorAction SilentlyContinue | Out-Null
   }
 
   # 2. Inicializar Go
@@ -563,9 +649,8 @@ DB_USER=admin
 DB_PASS=admin123
 DB_NAME=$($nombre)_db
 "@ | Out-File -Encoding utf8 .env
- 
 
-  # Dockerfile Corregido (Con herramientas de Test y Debug)
+  # Dockerfile (Con herramientas de Test y Debug)
   @"
 FROM golang:alpine
 WORKDIR /app
@@ -579,7 +664,7 @@ COPY . .
 CMD ["air", "-c", ".air.toml"]
 "@ | Out-File -Encoding utf8 Dockerfile
 
-  # Docker-compose (Con el Healthcheck que ya tenías)
+  # Docker-compose (Con Healthcheck)
   @"
 services:
   app:
@@ -613,15 +698,16 @@ volumes:
 "@ | Out-File -Encoding utf8 docker-compose.yml
 
   # 4. CÓDIGO GO + TEST (Boilerplate)
-  # main.go, db/db.go, rutas/rutas.go (Igual a los tuyos...)
   @"
 package main
+
 import (
 	"$nombre/db"
 	"$nombre/rutas"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/handlebars/v3"
 )
+
 func main() {
 	db.Connect()
 	engine := handlebars.New("./views", ".hbs")
@@ -634,13 +720,16 @@ func main() {
 
   @"
 package db
+
 import (
 	"fmt"
 	"os"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
 var DB *gorm.DB
+
 func Connect() {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", 
 		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
@@ -652,7 +741,9 @@ func Connect() {
 
   @"
 package ctrl
+
 import "github.com/gofiber/fiber/v2"
+
 func Index(c *fiber.Ctx) error {
 	return c.Render("index", fiber.Map{"Title": "Fiber + GORM Ready"})
 }
@@ -660,24 +751,27 @@ func Index(c *fiber.Ctx) error {
 
   @"
 package rutas
+
 import (
 	"$nombre/ctrl"
 	"github.com/gofiber/fiber/v2"
 )
+
 func Setup(app *fiber.App) {
 	app.Get("/", ctrl.Index)
 }
 "@ | Out-File -Encoding utf8 rutas/rutas.go
-   
-  # NUEVO: Archivo de Test para Neotest
+
   @"
 package tests
+
 import "testing"
+
 func TestHealthCheck(t *testing.T) {
-    status := true
-    if !status {
-        t.Errorf("El sistema no está sano")
-    }
+	status := true
+	if !status {
+		t.Errorf("El sistema no está sano")
+	}
 }
 "@ | Out-File -Encoding utf8 tests/main_test.go
 
@@ -688,15 +782,18 @@ func TestHealthCheck(t *testing.T) {
   @"
 root = "."
 tmp_dir = "tmp"
+
 [build]
-  cmd = "go build -o ./tmp/main ."
-  full_bin = "./tmp/main"
-  include_ext = ["go", "tpl", "tmpl", "html", "hbs", "css", "js", "svg"]
-  poll = true
+cmd = "go build -o ./tmp/main ."
+full_bin = "./tmp/main"
+include_ext = ["go", "tpl", "tmpl", "html", "hbs", "css", "js", "svg"]
+poll = true
 "@ | Out-File -Encoding utf8 .air.toml
 
   # 5. Finalizar
-  git init; git add .; git commit -m "feat: initial commit from automation script"
+  git init
+  git add .
+  git commit -m "feat: initial commit from automation script"
   Write-Host "`n🚀 PROYECTO '$nombre' CREADO Y LISTO PARA NEOTEST" -ForegroundColor Magenta
 }
 

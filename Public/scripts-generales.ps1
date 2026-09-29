@@ -66,7 +66,7 @@ function Get-FzfFiles
     
   if ($selected)
   {
-    Invoke-CleanNvim @("+$line", "--", "$file")    
+    Invoke-CleanNvim $selected
   }
 }
 
@@ -96,23 +96,6 @@ function Remove-GitStash
   {
     git stash drop $stashRef | Out-Host
   }
-}
-
-function Get-GitStash
-{
-  git rev-parse --git-dir 2>$null | Out-Null
-  if ($LASTEXITCODE -ne 0)
-  { return 
-  }
-
-  $stash = git stash list |
-    fzf --reverse --prompt="Git stash > " `
-      --preview 'git stash show --color=always -p {1}'
-
-  if (-not $stash)
-  { return $null 
-  }
-  return ($stash -split ':')[0]
 }
 
 function Get-GitStash

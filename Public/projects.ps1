@@ -1,5 +1,10 @@
 # projects.ps1
-$rutaProyectos = "C:\Users\Usuario\Documents\Desarrollo"
+$rutaProyectos = $env:DEVDASHBOARD_PROYECTOS
+if (-not $rutaProyectos -or -not (Test-Path $rutaProyectos))
+{
+  $rutaProyectos = "C:\Users\Usuario\Documents\Desarrollo"
+  Write-Host "⚠️ DEVDASHBOARD_PROYECTOS no configurado, usando fallback: $rutaProyectos" -ForegroundColor Yellow
+}
 
 function Show-OneProjectPreview
 {
